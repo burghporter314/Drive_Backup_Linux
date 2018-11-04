@@ -16,12 +16,12 @@ if [ ! -f $timestamp ]; then
 fi
 
 #Extract Date Timestamp
-date=$(head -1 LINUX_BACKUP_DATESTAMP.txt | awk '{print $4}')
-prev_backup_hour=$(echo $date | awk -F ":" '{print $1}')
-prev_backup_minute=$(echo $date | awk -F ":" '{print $2}')
+date=$(cat LINUX_BACKUP_DATESTAMP.txt)
+prev_backup_hour=$(echo $date | awk '{print $1}')
+prev_backup_minute=$(echo $date | awk '{print $2}')
 
-current_hour=$(date +"%H")
-current_minute=$(date +"%M")
+current_hour=$(date +"%-H")
+current_minute=$(date +"%-M")
 
 #Calculates current time in minutes and subtracts from old time in minutes
 total_elapsed_time=$(($(($((current_hour*60))+$current_minute))-$(($(($prev_backup_hour*60))+$prev_backup_minute))))
@@ -37,7 +37,7 @@ do
   fi
 done)
 
-home_file_change_num=$(($(find $files -mmin -$time_interval | wc -l)-$(find LOG.txt LOG_DAILY.txt -mmin -$time_interval | wc -l)))
+home_file_change_num=$(($(find $files -mmin -$time_interval | wc -l)-$(find LOG.txt LOG_DAILY.txt $timestamp -mmin -$time_interval | wc -l)))
 dir_change_num=$(find $(cat dirs_to_backup.txt) -mmin -$time_interval | wc -l)
 
 if [[ $(($dir_change_num + $home_file_change_num)) -le 0 ]] && [[ ! "$1" == "daily" ]] ; then
@@ -98,7 +98,7 @@ echo "Uploaded to Google Drive"
 
 rm -r -f $backup_Dir $zip_Name
 
-echo "`date`" > LINUX_BACKUP_DATESTAMP.txt #Update the timestamp of successful upload
+echo "`date +"%-H"`" "`date +"%-M"`" > LINUX_BACKUP_DATESTAMP.txt #Update the timestamp of successful upload
 
 zenity --info --text="System Backup Finished. \nLocation: $backup_Dir \nFile: $zip_Name \n\nBackup has been Uploaded to Google Drive" --title="Backup Completed" --width=450
 
